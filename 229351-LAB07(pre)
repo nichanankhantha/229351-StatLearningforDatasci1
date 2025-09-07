@@ -1,0 +1,1067 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/nichanankhantha/229351-StatLearningforDatasci1/blob/main/229351-LAB07(pre)\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "rUWDxJYaXbGS"
+      },
+      "source": [
+        "ปฏิบัติการครั้งที่ 7 กระบวนวิชา 229351 Statistical Learning for Data Science\n",
+        "\n",
+        "คำชี้แจง\n",
+        "\n",
+        "ให้เริ่มทำปฏิบัติการจาก colab notebook หรือไฟล์ *.ipynb ที่กำหนดให้ จากนั้นบันทึกไว้เป็นไฟล์ *.pdf แล้วส่งใน Assignments"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "BFeBRlckOxSG"
+      },
+      "source": [
+        "ดาวน์โหลดข้อมูลรถยนต์ชนิดต่างใน link ข้างล่างนี้  \n",
+        "https://donlapark.pages.dev/229351/data/elecequip.csv"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "ntO6KNB7A24q"
+      },
+      "outputs": [],
+      "source": [
+        "# uploading the csv file to colab\n",
+        "\n",
+        "!wget -O elecequip.csv https://donlapark.pages.dev/229351/data/elecequip.csv"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "5Tebr3-dBKxj"
+      },
+      "outputs": [],
+      "source": [
+        "# import module ที่ต้องใช้\n",
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "import matplotlib.pyplot as plt\n",
+        "from datetime import datetime"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "2SAbpyMIz7R8"
+      },
+      "outputs": [],
+      "source": [
+        "# parse_dates ชื่อของคอลัมน์ที่จะเปลี่ยนให้เป็น datetime\n",
+        "# index_col ชื่อของคอลัมน์ที่จะให้เป็น index\n",
+        "# date_parser ฟังก์ชันที่เปลี่ยน string ให้เป็น datetime\n",
+        "data = pd.read_csv('elecequip.csv', parse_dates=['time'],\n",
+        "                                        index_col='time',\n",
+        "                                        date_format='%Y-%m')\n",
+        "\n",
+        "data"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "6njJmujsAUNv"
+      },
+      "outputs": [],
+      "source": [
+        "plt.figure(figsize=(12,6))\n",
+        "plt.plot(data[\"value\"]);"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "bpTSSv18JxxG"
+      },
+      "outputs": [],
+      "source": [
+        "# subsetting data at specified date\n",
+        "\n",
+        "data"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "27jRk56ZJxxH"
+      },
+      "outputs": [],
+      "source": [
+        "# Add or change values\n",
+        "\n",
+        "data.loc['2012-03-02','value'] = 86\n",
+        "\n",
+        "data"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "CePUIQL7ujg9"
+      },
+      "source": [
+        "# Moving average"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "awvDOk0RUb0Q"
+      },
+      "outputs": [],
+      "source": [
+        "data['MA'] = data['value'].rolling(window=5,center=True).mean()\n",
+        "#data['MA'] = data['value'].rolling(window=12,center=True).mean().rolling(window=2).mean().shift(-1)\n",
+        "\n",
+        "data.head(12)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "vCl5Lve9au3u"
+      },
+      "outputs": [],
+      "source": [
+        "plt.figure(figsize=(12,6))\n",
+        "plt.plot(data['value'])\n",
+        "plt.plot(data['MA']);"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "iORnr4Hlu1VD"
+      },
+      "source": [
+        "# Classical decomposition"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "Pmu4xKUlTas-"
+      },
+      "outputs": [],
+      "source": [
+        "from statsmodels.tsa.seasonal import seasonal_decompose\n",
+        "import matplotlib as mpl\n",
+        "\n",
+        "mpl.rc(\"figure\", figsize=(12,6))\n",
+        "result_add = seasonal_decompose(data['value'], model='additive')\n",
+        "\n",
+        "result_add.plot();"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "yyxg_HLE5ZZW"
+      },
+      "outputs": [],
+      "source": [
+        "result_mul = seasonal_decompose(data['value'], model='multiplicative')\n",
+        "\n",
+        "result_mul.plot();"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "v9VA-hRhu8lR"
+      },
+      "source": [
+        "### เรียกดูแต่ละส่วน"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "gZwEPEzRnUHi"
+      },
+      "outputs": [],
+      "source": [
+        "print(result_add.trend)\n",
+        "print(result_add.seasonal)\n",
+        "print(result_add.resid)\n",
+        "print(result_add.observed)"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "GCEezvL2oPx2"
+      },
+      "source": [
+        "### ปฏิบัติการครั้งที่ 7\n",
+        "1. สร้างโมเดลเพื่อการทำนายดังนี้\n",
+        "1.1 แบ่งข้อมูลออกเป็น 2 ส่วน\n",
+        "   - training set: วันที่ 1996-01-01 ถึง 2009-12-01\n",
+        "   - test set: วันที่ 2010-01-01 ถึง 2012-03-01  \n",
+        "1.2 แยกส่วนประกอบ $y_t=S_t+T_t+R_t$ บน training set\n",
+        "1.3 สร้าง time series ชุดใหม่ที่แสดงถึงทำนายค่าบน test set โดยนำค่า $T_t+R_t$ ของวันล่าสุดใน training set ที่มีค่า $T_t$ มาบวกกับแต่ละค่าใน $S_t$ จากวันที่ วันที่ 2010-01-01 ถึง 2012-03-01  \n",
+        "3. คำนวณ RMSE โดยใช้ฟังก์ชัน `rmse` ข้างล่าง\n",
+        "4. แสดงแผนภาพข้อมูล elecequip และค่าทำนายที่ได้"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "train_data = data.loc['1996-01-01':'2009-12-01']\n",
+        "test_data = data.loc['2010-01-01':'2012-03-01']\n",
+        "\n",
+        "print(\"Training data:\")\n",
+        "display(train_data.head())\n",
+        "print(\"\\nTest data:\")\n",
+        "display(test_data.head())"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 504
+        },
+        "id": "6L2ov0azMu5N",
+        "outputId": "ebcd1068-ac27-4d3d-e3f2-0cd0934e165b"
+      },
+      "execution_count": 26,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Training data:\n"
+          ]
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "text/plain": [
+              "            Unnamed: 0  value      MA\n",
+              "time                                 \n",
+              "1996-01-01         1.0  79.35     NaN\n",
+              "1996-02-01         2.0  75.78     NaN\n",
+              "1996-03-01         3.0  86.32  77.782\n",
+              "1996-04-01         4.0  72.60  78.674\n",
+              "1996-05-01         5.0  74.86  79.478"
+            ],
+            "text/html": [
+              "\n",
+              "  <div id=\"df-483c4261-cb79-42ee-9de6-89930c65644a\" class=\"colab-df-container\">\n",
+              "    <div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Unnamed: 0</th>\n",
+              "      <th>value</th>\n",
+              "      <th>MA</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>time</th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>1996-01-01</th>\n",
+              "      <td>1.0</td>\n",
+              "      <td>79.35</td>\n",
+              "      <td>NaN</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1996-02-01</th>\n",
+              "      <td>2.0</td>\n",
+              "      <td>75.78</td>\n",
+              "      <td>NaN</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1996-03-01</th>\n",
+              "      <td>3.0</td>\n",
+              "      <td>86.32</td>\n",
+              "      <td>77.782</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1996-04-01</th>\n",
+              "      <td>4.0</td>\n",
+              "      <td>72.60</td>\n",
+              "      <td>78.674</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1996-05-01</th>\n",
+              "      <td>5.0</td>\n",
+              "      <td>74.86</td>\n",
+              "      <td>79.478</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>\n",
+              "    <div class=\"colab-df-buttons\">\n",
+              "\n",
+              "  <div class=\"colab-df-container\">\n",
+              "    <button class=\"colab-df-convert\" onclick=\"convertToInteractive('df-483c4261-cb79-42ee-9de6-89930c65644a')\"\n",
+              "            title=\"Convert this dataframe to an interactive table.\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "  <svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\" viewBox=\"0 -960 960 960\">\n",
+              "    <path d=\"M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z\"/>\n",
+              "  </svg>\n",
+              "    </button>\n",
+              "\n",
+              "  <style>\n",
+              "    .colab-df-container {\n",
+              "      display:flex;\n",
+              "      gap: 12px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert {\n",
+              "      background-color: #E8F0FE;\n",
+              "      border: none;\n",
+              "      border-radius: 50%;\n",
+              "      cursor: pointer;\n",
+              "      display: none;\n",
+              "      fill: #1967D2;\n",
+              "      height: 32px;\n",
+              "      padding: 0 0 0 0;\n",
+              "      width: 32px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert:hover {\n",
+              "      background-color: #E2EBFA;\n",
+              "      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "      fill: #174EA6;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-buttons div {\n",
+              "      margin-bottom: 4px;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert {\n",
+              "      background-color: #3B4455;\n",
+              "      fill: #D2E3FC;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert:hover {\n",
+              "      background-color: #434B5C;\n",
+              "      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);\n",
+              "      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));\n",
+              "      fill: #FFFFFF;\n",
+              "    }\n",
+              "  </style>\n",
+              "\n",
+              "    <script>\n",
+              "      const buttonEl =\n",
+              "        document.querySelector('#df-483c4261-cb79-42ee-9de6-89930c65644a button.colab-df-convert');\n",
+              "      buttonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "\n",
+              "      async function convertToInteractive(key) {\n",
+              "        const element = document.querySelector('#df-483c4261-cb79-42ee-9de6-89930c65644a');\n",
+              "        const dataTable =\n",
+              "          await google.colab.kernel.invokeFunction('convertToInteractive',\n",
+              "                                                    [key], {});\n",
+              "        if (!dataTable) return;\n",
+              "\n",
+              "        const docLinkHtml = 'Like what you see? Visit the ' +\n",
+              "          '<a target=\"_blank\" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'\n",
+              "          + ' to learn more about interactive tables.';\n",
+              "        element.innerHTML = '';\n",
+              "        dataTable['output_type'] = 'display_data';\n",
+              "        await google.colab.output.renderOutput(dataTable, element);\n",
+              "        const docLink = document.createElement('div');\n",
+              "        docLink.innerHTML = docLinkHtml;\n",
+              "        element.appendChild(docLink);\n",
+              "      }\n",
+              "    </script>\n",
+              "  </div>\n",
+              "\n",
+              "\n",
+              "    <div id=\"df-55e65634-2a7e-4c66-84e3-12e81548993a\">\n",
+              "      <button class=\"colab-df-quickchart\" onclick=\"quickchart('df-55e65634-2a7e-4c66-84e3-12e81548993a')\"\n",
+              "                title=\"Suggest charts\"\n",
+              "                style=\"display:none;\">\n",
+              "\n",
+              "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\"viewBox=\"0 0 24 24\"\n",
+              "     width=\"24px\">\n",
+              "    <g>\n",
+              "        <path d=\"M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z\"/>\n",
+              "    </g>\n",
+              "</svg>\n",
+              "      </button>\n",
+              "\n",
+              "<style>\n",
+              "  .colab-df-quickchart {\n",
+              "      --bg-color: #E8F0FE;\n",
+              "      --fill-color: #1967D2;\n",
+              "      --hover-bg-color: #E2EBFA;\n",
+              "      --hover-fill-color: #174EA6;\n",
+              "      --disabled-fill-color: #AAA;\n",
+              "      --disabled-bg-color: #DDD;\n",
+              "  }\n",
+              "\n",
+              "  [theme=dark] .colab-df-quickchart {\n",
+              "      --bg-color: #3B4455;\n",
+              "      --fill-color: #D2E3FC;\n",
+              "      --hover-bg-color: #434B5C;\n",
+              "      --hover-fill-color: #FFFFFF;\n",
+              "      --disabled-bg-color: #3B4455;\n",
+              "      --disabled-fill-color: #666;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart {\n",
+              "    background-color: var(--bg-color);\n",
+              "    border: none;\n",
+              "    border-radius: 50%;\n",
+              "    cursor: pointer;\n",
+              "    display: none;\n",
+              "    fill: var(--fill-color);\n",
+              "    height: 32px;\n",
+              "    padding: 0;\n",
+              "    width: 32px;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart:hover {\n",
+              "    background-color: var(--hover-bg-color);\n",
+              "    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "    fill: var(--button-hover-fill-color);\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart-complete:disabled,\n",
+              "  .colab-df-quickchart-complete:disabled:hover {\n",
+              "    background-color: var(--disabled-bg-color);\n",
+              "    fill: var(--disabled-fill-color);\n",
+              "    box-shadow: none;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-spinner {\n",
+              "    border: 2px solid var(--fill-color);\n",
+              "    border-color: transparent;\n",
+              "    border-bottom-color: var(--fill-color);\n",
+              "    animation:\n",
+              "      spin 1s steps(1) infinite;\n",
+              "  }\n",
+              "\n",
+              "  @keyframes spin {\n",
+              "    0% {\n",
+              "      border-color: transparent;\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "      border-left-color: var(--fill-color);\n",
+              "    }\n",
+              "    20% {\n",
+              "      border-color: transparent;\n",
+              "      border-left-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "    }\n",
+              "    30% {\n",
+              "      border-color: transparent;\n",
+              "      border-left-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "      border-right-color: var(--fill-color);\n",
+              "    }\n",
+              "    40% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "    }\n",
+              "    60% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "    }\n",
+              "    80% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "    }\n",
+              "    90% {\n",
+              "      border-color: transparent;\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "    }\n",
+              "  }\n",
+              "</style>\n",
+              "\n",
+              "      <script>\n",
+              "        async function quickchart(key) {\n",
+              "          const quickchartButtonEl =\n",
+              "            document.querySelector('#' + key + ' button');\n",
+              "          quickchartButtonEl.disabled = true;  // To prevent multiple clicks.\n",
+              "          quickchartButtonEl.classList.add('colab-df-spinner');\n",
+              "          try {\n",
+              "            const charts = await google.colab.kernel.invokeFunction(\n",
+              "                'suggestCharts', [key], {});\n",
+              "          } catch (error) {\n",
+              "            console.error('Error during call to suggestCharts:', error);\n",
+              "          }\n",
+              "          quickchartButtonEl.classList.remove('colab-df-spinner');\n",
+              "          quickchartButtonEl.classList.add('colab-df-quickchart-complete');\n",
+              "        }\n",
+              "        (() => {\n",
+              "          let quickchartButtonEl =\n",
+              "            document.querySelector('#df-55e65634-2a7e-4c66-84e3-12e81548993a button');\n",
+              "          quickchartButtonEl.style.display =\n",
+              "            google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "        })();\n",
+              "      </script>\n",
+              "    </div>\n",
+              "\n",
+              "    </div>\n",
+              "  </div>\n"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "dataframe",
+              "summary": "{\n  \"name\": \"display(test_data\",\n  \"rows\": 5,\n  \"fields\": [\n    {\n      \"column\": \"time\",\n      \"properties\": {\n        \"dtype\": \"date\",\n        \"min\": \"1996-01-01 00:00:00\",\n        \"max\": \"1996-05-01 00:00:00\",\n        \"num_unique_values\": 5,\n        \"samples\": [\n          \"1996-02-01 00:00:00\",\n          \"1996-05-01 00:00:00\",\n          \"1996-03-01 00:00:00\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Unnamed: 0\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1.5811388300841898,\n        \"min\": 1.0,\n        \"max\": 5.0,\n        \"num_unique_values\": 5,\n        \"samples\": [\n          2.0,\n          5.0,\n          3.0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"value\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 5.356194544637077,\n        \"min\": 72.6,\n        \"max\": 86.32,\n        \"num_unique_values\": 5,\n        \"samples\": [\n          75.78,\n          74.86,\n          86.32\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"MA\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0.8483804178158119,\n        \"min\": 77.782,\n        \"max\": 79.478,\n        \"num_unique_values\": 3,\n        \"samples\": [\n          77.782,\n          78.67399999999999,\n          79.478\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    }\n  ]\n}"
+            }
+          },
+          "metadata": {}
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "\n",
+            "Test data:\n"
+          ]
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "text/plain": [
+              "            Unnamed: 0  value      MA\n",
+              "time                                 \n",
+              "2010-01-01       169.0  79.28  88.650\n",
+              "2010-02-01       170.0  78.74  87.964\n",
+              "2010-03-01       171.0  94.62  84.500\n",
+              "2010-04-01       172.0  84.66  89.432\n",
+              "2010-05-01       173.0  85.20  91.658"
+            ],
+            "text/html": [
+              "\n",
+              "  <div id=\"df-9bc33713-98a1-4d96-8209-c8081d0e69f5\" class=\"colab-df-container\">\n",
+              "    <div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Unnamed: 0</th>\n",
+              "      <th>value</th>\n",
+              "      <th>MA</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>time</th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>2010-01-01</th>\n",
+              "      <td>169.0</td>\n",
+              "      <td>79.28</td>\n",
+              "      <td>88.650</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2010-02-01</th>\n",
+              "      <td>170.0</td>\n",
+              "      <td>78.74</td>\n",
+              "      <td>87.964</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2010-03-01</th>\n",
+              "      <td>171.0</td>\n",
+              "      <td>94.62</td>\n",
+              "      <td>84.500</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2010-04-01</th>\n",
+              "      <td>172.0</td>\n",
+              "      <td>84.66</td>\n",
+              "      <td>89.432</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2010-05-01</th>\n",
+              "      <td>173.0</td>\n",
+              "      <td>85.20</td>\n",
+              "      <td>91.658</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>\n",
+              "    <div class=\"colab-df-buttons\">\n",
+              "\n",
+              "  <div class=\"colab-df-container\">\n",
+              "    <button class=\"colab-df-convert\" onclick=\"convertToInteractive('df-9bc33713-98a1-4d96-8209-c8081d0e69f5')\"\n",
+              "            title=\"Convert this dataframe to an interactive table.\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "  <svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\" viewBox=\"0 -960 960 960\">\n",
+              "    <path d=\"M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z\"/>\n",
+              "  </svg>\n",
+              "    </button>\n",
+              "\n",
+              "  <style>\n",
+              "    .colab-df-container {\n",
+              "      display:flex;\n",
+              "      gap: 12px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert {\n",
+              "      background-color: #E8F0FE;\n",
+              "      border: none;\n",
+              "      border-radius: 50%;\n",
+              "      cursor: pointer;\n",
+              "      display: none;\n",
+              "      fill: #1967D2;\n",
+              "      height: 32px;\n",
+              "      padding: 0 0 0 0;\n",
+              "      width: 32px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert:hover {\n",
+              "      background-color: #E2EBFA;\n",
+              "      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "      fill: #174EA6;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-buttons div {\n",
+              "      margin-bottom: 4px;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert {\n",
+              "      background-color: #3B4455;\n",
+              "      fill: #D2E3FC;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert:hover {\n",
+              "      background-color: #434B5C;\n",
+              "      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);\n",
+              "      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));\n",
+              "      fill: #FFFFFF;\n",
+              "    }\n",
+              "  </style>\n",
+              "\n",
+              "    <script>\n",
+              "      const buttonEl =\n",
+              "        document.querySelector('#df-9bc33713-98a1-4d96-8209-c8081d0e69f5 button.colab-df-convert');\n",
+              "      buttonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "\n",
+              "      async function convertToInteractive(key) {\n",
+              "        const element = document.querySelector('#df-9bc33713-98a1-4d96-8209-c8081d0e69f5');\n",
+              "        const dataTable =\n",
+              "          await google.colab.kernel.invokeFunction('convertToInteractive',\n",
+              "                                                    [key], {});\n",
+              "        if (!dataTable) return;\n",
+              "\n",
+              "        const docLinkHtml = 'Like what you see? Visit the ' +\n",
+              "          '<a target=\"_blank\" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'\n",
+              "          + ' to learn more about interactive tables.';\n",
+              "        element.innerHTML = '';\n",
+              "        dataTable['output_type'] = 'display_data';\n",
+              "        await google.colab.output.renderOutput(dataTable, element);\n",
+              "        const docLink = document.createElement('div');\n",
+              "        docLink.innerHTML = docLinkHtml;\n",
+              "        element.appendChild(docLink);\n",
+              "      }\n",
+              "    </script>\n",
+              "  </div>\n",
+              "\n",
+              "\n",
+              "    <div id=\"df-50ca1e09-0154-4edd-8e05-489029c87298\">\n",
+              "      <button class=\"colab-df-quickchart\" onclick=\"quickchart('df-50ca1e09-0154-4edd-8e05-489029c87298')\"\n",
+              "                title=\"Suggest charts\"\n",
+              "                style=\"display:none;\">\n",
+              "\n",
+              "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\"viewBox=\"0 0 24 24\"\n",
+              "     width=\"24px\">\n",
+              "    <g>\n",
+              "        <path d=\"M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z\"/>\n",
+              "    </g>\n",
+              "</svg>\n",
+              "      </button>\n",
+              "\n",
+              "<style>\n",
+              "  .colab-df-quickchart {\n",
+              "      --bg-color: #E8F0FE;\n",
+              "      --fill-color: #1967D2;\n",
+              "      --hover-bg-color: #E2EBFA;\n",
+              "      --hover-fill-color: #174EA6;\n",
+              "      --disabled-fill-color: #AAA;\n",
+              "      --disabled-bg-color: #DDD;\n",
+              "  }\n",
+              "\n",
+              "  [theme=dark] .colab-df-quickchart {\n",
+              "      --bg-color: #3B4455;\n",
+              "      --fill-color: #D2E3FC;\n",
+              "      --hover-bg-color: #434B5C;\n",
+              "      --hover-fill-color: #FFFFFF;\n",
+              "      --disabled-bg-color: #3B4455;\n",
+              "      --disabled-fill-color: #666;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart {\n",
+              "    background-color: var(--bg-color);\n",
+              "    border: none;\n",
+              "    border-radius: 50%;\n",
+              "    cursor: pointer;\n",
+              "    display: none;\n",
+              "    fill: var(--fill-color);\n",
+              "    height: 32px;\n",
+              "    padding: 0;\n",
+              "    width: 32px;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart:hover {\n",
+              "    background-color: var(--hover-bg-color);\n",
+              "    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "    fill: var(--button-hover-fill-color);\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart-complete:disabled,\n",
+              "  .colab-df-quickchart-complete:disabled:hover {\n",
+              "    background-color: var(--disabled-bg-color);\n",
+              "    fill: var(--disabled-fill-color);\n",
+              "    box-shadow: none;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-spinner {\n",
+              "    border: 2px solid var(--fill-color);\n",
+              "    border-color: transparent;\n",
+              "    border-bottom-color: var(--fill-color);\n",
+              "    animation:\n",
+              "      spin 1s steps(1) infinite;\n",
+              "  }\n",
+              "\n",
+              "  @keyframes spin {\n",
+              "    0% {\n",
+              "      border-color: transparent;\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "      border-left-color: var(--fill-color);\n",
+              "    }\n",
+              "    20% {\n",
+              "      border-color: transparent;\n",
+              "      border-left-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "    }\n",
+              "    30% {\n",
+              "      border-color: transparent;\n",
+              "      border-left-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "      border-right-color: var(--fill-color);\n",
+              "    }\n",
+              "    40% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "    }\n",
+              "    60% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "    }\n",
+              "    80% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "    }\n",
+              "    90% {\n",
+              "      border-color: transparent;\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "    }\n",
+              "  }\n",
+              "</style>\n",
+              "\n",
+              "      <script>\n",
+              "        async function quickchart(key) {\n",
+              "          const quickchartButtonEl =\n",
+              "            document.querySelector('#' + key + ' button');\n",
+              "          quickchartButtonEl.disabled = true;  // To prevent multiple clicks.\n",
+              "          quickchartButtonEl.classList.add('colab-df-spinner');\n",
+              "          try {\n",
+              "            const charts = await google.colab.kernel.invokeFunction(\n",
+              "                'suggestCharts', [key], {});\n",
+              "          } catch (error) {\n",
+              "            console.error('Error during call to suggestCharts:', error);\n",
+              "          }\n",
+              "          quickchartButtonEl.classList.remove('colab-df-spinner');\n",
+              "          quickchartButtonEl.classList.add('colab-df-quickchart-complete');\n",
+              "        }\n",
+              "        (() => {\n",
+              "          let quickchartButtonEl =\n",
+              "            document.querySelector('#df-50ca1e09-0154-4edd-8e05-489029c87298 button');\n",
+              "          quickchartButtonEl.style.display =\n",
+              "            google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "        })();\n",
+              "      </script>\n",
+              "    </div>\n",
+              "\n",
+              "    </div>\n",
+              "  </div>\n"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "dataframe",
+              "summary": "{\n  \"name\": \"display(test_data\",\n  \"rows\": 5,\n  \"fields\": [\n    {\n      \"column\": \"time\",\n      \"properties\": {\n        \"dtype\": \"date\",\n        \"min\": \"2010-01-01 00:00:00\",\n        \"max\": \"2010-05-01 00:00:00\",\n        \"num_unique_values\": 5,\n        \"samples\": [\n          \"2010-02-01 00:00:00\",\n          \"2010-05-01 00:00:00\",\n          \"2010-03-01 00:00:00\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Unnamed: 0\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1.5811388300841898,\n        \"min\": 169.0,\n        \"max\": 173.0,\n        \"num_unique_values\": 5,\n        \"samples\": [\n          170.0,\n          173.0,\n          171.0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"value\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 6.390539883296249,\n        \"min\": 78.74,\n        \"max\": 94.62,\n        \"num_unique_values\": 5,\n        \"samples\": [\n          78.74,\n          85.2,\n          94.62\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"MA\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 2.60450862928115,\n        \"min\": 84.5,\n        \"max\": 91.65799999999999,\n        \"num_unique_values\": 5,\n        \"samples\": [\n          87.964,\n          91.65799999999999,\n          84.5\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    }\n  ]\n}"
+            }
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Separate components y_t = S_t + T_t + R_t on the training set\n",
+        "result_add_train = seasonal_decompose(train_data['value'], model='additive')\n",
+        "\n",
+        "# Get the last available trend and residual from the training set\n",
+        "last_trend = result_add_train.trend.iloc[-1]\n",
+        "last_residual = result_add_train.resid.iloc[-1]\n",
+        "\n",
+        "# Get the seasonal component for the test set period by repeating the seasonal pattern from the training data\n",
+        "seasonal_train = result_add_train.seasonal\n",
+        "seasonal_test = seasonal_train.iloc[test_data.index.month - 1].values\n",
+        "seasonal_test = pd.Series(seasonal_test, index=test_data.index)\n",
+        "\n",
+        "# Create the forecasted time series for the test set\n",
+        "# Forecast = last_trend + last_residual + seasonal_test\n",
+        "forecast_test = last_trend + last_residual + seasonal_test\n",
+        "\n",
+        "print(\"Forecasted test data:\")\n",
+        "display(forecast_test.head())"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 286
+        },
+        "id": "bLaQ4l0HNHbG",
+        "outputId": "a3e9b27a-bd11-4e99-9d55-2b616ebc27b6"
+      },
+      "execution_count": 29,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Forecasted test data:\n"
+          ]
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "text/plain": [
+              "time\n",
+              "2010-01-01   NaN\n",
+              "2010-02-01   NaN\n",
+              "2010-03-01   NaN\n",
+              "2010-04-01   NaN\n",
+              "2010-05-01   NaN\n",
+              "dtype: float64"
+            ],
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>0</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>time</th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>2010-01-01</th>\n",
+              "      <td>NaN</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2010-02-01</th>\n",
+              "      <td>NaN</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2010-03-01</th>\n",
+              "      <td>NaN</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2010-04-01</th>\n",
+              "      <td>NaN</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2010-05-01</th>\n",
+              "      <td>NaN</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div><br><label><b>dtype:</b> float64</label>"
+            ]
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 30,
+      "metadata": {
+        "id": "PrAalcnNt9Wa"
+      },
+      "outputs": [],
+      "source": [
+        "def rmse(y_true,y_pred):\n",
+        "  # Inputs\n",
+        "  # y_true: actual value, y_pred: predicted values\n",
+        "  # Output: RMSE between y_true and y_pred\n",
+        "  return np.sqrt(np.mean(np.square(y_true-y_pred)))"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 31,
+      "metadata": {
+        "id": "SufKu823LieW",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 173
+        },
+        "outputId": "093f7214-0e08-46a3-fd77-a3f78a39669a"
+      },
+      "outputs": [
+        {
+          "output_type": "error",
+          "ename": "NameError",
+          "evalue": "name 'ts_new' is not defined",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mNameError\u001b[0m                                 Traceback (most recent call last)",
+            "\u001b[0;32m/tmp/ipython-input-66850774.py\u001b[0m in \u001b[0;36m<cell line: 0>\u001b[0;34m()\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0max\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mts_new\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mplot\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mmarker\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m'o'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mcolor\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m'black'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mfigsize\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;36m20\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;36m8\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
+            "\u001b[0;31mNameError\u001b[0m: name 'ts_new' is not defined"
+          ]
+        }
+      ],
+      "source": [
+        "ax = ts_new.plot(marker='o', color='black', figsize=(20,8))"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "0e754538",
+        "outputId": "3dcf970f-f47a-4edc-d6a7-e200fca46342",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "source": [
+        "# Calculate RMSE\n",
+        "rmse_value = rmse(test_data['value'], forecast_test)\n",
+        "print(f\"RMSE: {rmse_value}\")"
+      ],
+      "execution_count": 32,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "RMSE: nan\n"
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "colab": {
+      "name": "229351-LAB09.ipynb",
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "display_name": "Python 3 (ipykernel)",
+      "language": "python",
+      "name": "python3"
+    },
+    "language_info": {
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.10.12"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
